@@ -1,0 +1,328 @@
+openapi: 3.0.0
+info:
+  title: Contact API
+  description: Endpoints for managing contact form submissions
+  version: 1.0.0
+
+tags:
+  - name: Contact
+    description: Contact form operations
+
+paths:
+  /api/contact:
+    post:
+      tags:
+        - Contact
+      summary: Submit contact form
+      description: Create a new contact form submission
+      operationId: createContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactInput'
+      responses:
+        '201':
+          description: Contact form submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Contact message received successfully
+                  data:
+                    $ref: '#/components/schemas/Contact'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Full name must be at least 2 characters
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Failed to process contact form submission
+                  error:
+                    type: string
+                    example: Error message details
+    
+    get:
+      tags:
+        - Contact
+      summary: Get all contacts
+      description: Retrieve all contact form submissions (admin only)
+      operationId: getAllContacts
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all contacts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 15
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contact'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Authentication required
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Failed to fetch contacts
+                  error:
+                    type: string
+                    example: Error message details
+  
+  /api/contact/{id}:
+    get:
+      tags:
+        - Contact
+      summary: Get contact by ID
+      description: Retrieve a specific contact by its ID (admin only)
+      operationId: getContactById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Contact ID
+          schema:
+            type: string
+            format: objectId
+            example: 5f7d8e1d9b8c7d6e5f4d3c2b
+      responses:
+        '200':
+          description: Contact details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Contact'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Authentication required
+        '404':
+          description: Contact not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Contact not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Failed to fetch contact
+                  error:
+                    type: string
+                    example: Error message details
+    
+    delete:
+      tags:
+        - Contact
+      summary: Delete contact
+      description: Delete a specific contact by its ID (admin only)
+      operationId: deleteContact
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Contact ID
+          schema:
+            type: string
+            format: objectId
+            example: 5f7d8e1d9b8c7d6e5f4d3c2b
+      responses:
+        '200':
+          description: Contact deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Contact deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Authentication required
+        '404':
+          description: Contact not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Contact not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Failed to delete contact
+                  error:
+                    type: string
+                    example: Error message details
+
+components:
+  schemas:
+    ContactInput:
+      type: object
+      required:
+        - fullname
+        - email
+        - subject
+        - phone
+        - message
+      properties:
+        fullname:
+          type: string
+          description: Full name of the person submitting the contact form
+          example: John Doe
+          minLength: 2
+        email:
+          type: string
+          format: email
+          description: Email address of the contact
+          example: john.doe@example.com
+        subject:
+          type: string
+          description: Subject of the contact message
+          example: Product Inquiry
+          minLength: 2
+        phone:
+          type: string
+          description: Phone number of the contact
+          example: "+12345678901"
+          pattern: "^[+]?[(]?[0-9]{3}[)]?[-\\s.]?[0-9]{3}[-\\s.]?[0-9]{4,6}$"
+        message:
+          type: string
+          description: The contact message content
+          example: I would like to know more about your services and pricing options.
+          minLength: 10
+    
+    Contact:
+      allOf:
+        - $ref: '#/components/schemas/ContactInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+              format: objectId
+              example: 5f7d8e1d9b8c7d6e5f4d3c2b
+            createdAt:
+              type: string
+              format: date-time
+              example: "2023-06-15T14:30:00Z"
+            updatedAt:
+              type: string
+              format: date-time
+              example: "2023-06-15T14:30:00Z"

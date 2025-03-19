@@ -57,4 +57,6 @@ x-swagger-router-controller: home
 x-swagger-additional-specs:
   - ../swagger/user-routes.yaml
   - ../swagger/auth-routes.yaml
+  - ../swagger/contact-routes.yaml
+  - ../swagger/property-routes.yaml
   # Add other specification files as needed

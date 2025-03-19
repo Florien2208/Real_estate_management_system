@@ -1,0 +1,550 @@
+
+openapi: 3.0.0
+info:
+  title: Property API
+  description: API endpoints for property management with Cloudinary image integration
+  version: 1.0.0
+
+paths:
+  /api/properties:
+    get:
+      tags:
+        - Properties
+      summary: Get all properties
+      description: Retrieves a list of properties with optional filtering
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of properties to return
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: createdBy
+          schema:
+            type: string
+          description: Filter by creator's ID
+        - in: query
+          name: propertyType
+          schema:
+            type: string
+            enum: [House, Apartment, Commercial, Land, Other]
+          description: Filter by property type
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  properties:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Property'
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      pages:
+                        type: integer
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      tags:
+        - Properties
+      summary: Create a new property
+      description: Create a new property listing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyInput'
+      responses:
+        '201':
+          description: Property created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/properties/{id}:
+    get:
+      tags:
+        - Properties
+      summary: Get property by ID
+      description: Retrieve a specific property by its ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Property ID
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '404':
+          description: Property not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags:
+        - Properties
+      summary: Update property
+      description: Update an existing property
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Property ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyUpdate'
+      responses:
+        '200':
+          description: Property updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Not property owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Property not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags:
+        - Properties
+      summary: Delete property
+      description: Delete a property and its associated images from Cloudinary
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Property ID
+      responses:
+        '200':
+          description: Property deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Property deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - Not property owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Property not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/properties/{id}/images:
+    post:
+      tags:
+        - Properties
+      summary: Upload property images
+      description: Upload multiple images for a property
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Property ID
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Image files to upload (up to 10)
+      responses:
+        '200':
+          description: Images uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Images uploaded successfully
+                  images:
+                    type: array
+                    items:
+                      type: string
+                      example: https://res.cloudinary.com/example/image/upload/v1615123456/property-images/abcdef123456.jpg
+        '400':
+          description: No files uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Property not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/upload:
+    post:
+      tags:
+        - Upload
+      summary: Upload single image
+      description: Upload a single image to Cloudinary
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Image file to upload
+      responses:
+        '200':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imageUrl:
+                    type: string
+                    example: https://res.cloudinary.com/example/image/upload/v1615123456/property-images/abcdef123456.jpg
+        '400':
+          description: No file uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/upload-multiple:
+    post:
+      tags:
+        - Upload
+      summary: Upload multiple images
+      description: Upload multiple images to Cloudinary
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Image files to upload (up to 10)
+      responses:
+        '200':
+          description: Images uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imageUrls:
+                    type: array
+                    items:
+                      type: string
+                      example: https://res.cloudinary.com/example/image/upload/v1615123456/property-images/abcdef123456.jpg
+        '400':
+          description: No files uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Property:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 60d21b4667d0d8992e610c85
+        propertyTitle:
+          type: string
+          example: Luxury Apartment in Downtown
+        price:
+          type: number
+          example: 350000
+        location:
+          type: string
+          example: 123 Main St, City, State
+        propertyType:
+          type: string
+          enum: [House, Apartment, Commercial, Land, Other]
+          example: Apartment
+        bedrooms:
+          type: number
+          example: 3
+        bathrooms:
+          type: number
+          example: 2
+        area:
+          type: number
+          example: 1200
+        images:
+          type: array
+          items:
+            type: string
+            example: https://res.cloudinary.com/example/image/upload/v1615123456/property-images/abcdef123456.jpg
+        description:
+          type: string
+          example: Beautiful apartment with modern amenities
+        createdBy:
+          type: object
+          properties:
+            _id:
+              type: string
+              example: 60d21b4667d0d8992e610c84
+            name:
+              type: string
+              example: John Doe
+            email:
+              type: string
+              example: john@example.com
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    
+    PropertyInput:
+      type: object
+      required:
+        - propertyTitle
+        - price
+        - location
+        - propertyType
+      properties:
+        propertyTitle:
+          type: string
+          example: Luxury Apartment in Downtown
+        price:
+          type: number
+          example: 350000
+        location:
+          type: string
+          example: 123 Main St, City, State
+        propertyType:
+          type: string
+          enum: [House, Apartment, Commercial, Land, Other]
+          example: Apartment
+        bedrooms:
+          type: number
+          example: 3
+        bathrooms:
+          type: number
+          example: 2
+        area:
+          type: number
+          example: 1200
+        images:
+          type: array
+          items:
+            type: string
+            example: https://res.cloudinary.com/example/image/upload/v1615123456/property-images/abcdef123456.jpg
+        description:
+          type: string
+          example: Beautiful apartment with modern amenities
+    
+    PropertyUpdate:
+      type: object
+      properties:
+        propertyTitle:
+          type: string
+          example: Updated Luxury Apartment
+        price:
+          type: number
+          example: 375000
+        location:
+          type: string
+          example: 123 Main St, City, State
+        propertyType:
+          type: string
+          enum: [House, Apartment, Commercial, Land, Other]
+          example: Apartment
+        bedrooms:
+          type: number
+          example: 3
+        bathrooms:
+          type: number
+          example: 2
+        area:
+          type: number
+          example: 1200
+        images:
+          type: array
+          items:
+            type: string
+            example: https://res.cloudinary.com/example/image/upload/v1615123456/property-images/abcdef123456.jpg
+        description:
+          type: string
+          example: Beautiful apartment with updated amenities
+    
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Error message
+        error:
+          type: string
+          example: Detailed error information
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
