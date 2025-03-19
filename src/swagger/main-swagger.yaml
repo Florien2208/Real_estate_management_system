@@ -1,0 +1,60 @@
+openapi: 3.0.0
+info:
+  title: API Documentation
+  description: Complete API documentation for the application
+  version: 1.0.0
+  contact:
+    email: support@example.com
+servers:
+  - url: http://localhost:8080
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+
+# Global security scheme
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+# Tags for API grouping
+tags:
+  - name: Users
+    description: User management operations
+  - name: Authentication
+    description: Authentication operations
+  # Add other tags as needed
+
+# Core paths included directly
+paths:
+  # Health check endpoint
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check
+      description: Check if the API is running
+      responses:
+        '200':
+          description: API is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+
+# References to other API specifications
+# When the API is started, these files will be combined into a single specification
+x-swagger-router-controller: home
+x-swagger-additional-specs:
+  - ../swagger/user-routes.yaml
+  - ../swagger/auth-routes.yaml
+  # Add other specification files as needed

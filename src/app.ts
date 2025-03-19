@@ -4,6 +4,7 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import { logger } from "./utils/logger.utils";
 import appRoutes from "./routes";
+import { setupSwagger } from "./config/swagger.config";
 
 // Load environment variables
 dotenv.config();
@@ -12,7 +13,15 @@ const app: Application = express();
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:8080",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    optionsSuccessStatus: 204,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -24,6 +33,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 
 // Routes
 app.use("/api/v1", appRoutes);
+setupSwagger(app);
 
 // Health check route
 app.get("/health", (_req: Request, res: Response) => {

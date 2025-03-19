@@ -1,0 +1,579 @@
+openapi: 3.0.0
+info:
+  title: User Management API
+  description: API for managing users in the system
+  version: 1.0.0
+  contact:
+    email: support@example.com
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+
+tags:
+  - name: Users
+    description: User management operations
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+      properties:
+        _id:
+          type: string
+          description: User ID
+          example: 60d0fe4f5311236168a109ca
+        firstName:
+          type: string
+          description: User's first name
+          maxLength: 50
+          example: John
+        lastName:
+          type: string
+          description: User's last name
+          maxLength: 50
+          example: Doe
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: john.doe@example.com
+        role:
+          type: string
+          enum: [user, admin, manager]
+          description: User's role in the system
+          default: user
+          example: user
+        isActive:
+          type: boolean
+          description: Whether the user account is active
+          default: true
+          example: true
+        lastLogin:
+          type: string
+          format: date-time
+          description: Date and time of the user's last login
+          example: 2023-01-01T00:00:00Z
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time when the user was created
+          example: 2023-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date and time when the user was last updated
+          example: 2023-01-01T00:00:00Z
+        fullName:
+          type: string
+          description: User's full name (virtual field)
+          example: John Doe
+    
+    UserInput:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+      properties:
+        firstName:
+          type: string
+          description: User's first name
+          maxLength: 50
+          example: John
+        lastName:
+          type: string
+          description: User's last name
+          maxLength: 50
+          example: Doe
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          description: User's password
+          example: SecurePassword123!
+        role:
+          type: string
+          enum: [user, admin, manager]
+          description: User's role in the system
+          default: user
+          example: user
+        isActive:
+          type: boolean
+          description: Whether the user account is active
+          default: true
+          example: true
+    
+    UserUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: User's first name
+          maxLength: 50
+          example: John
+        lastName:
+          type: string
+          description: User's last name
+          maxLength: 50
+          example: Doe
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: john.doe@example.com
+        role:
+          type: string
+          enum: [user, admin, manager]
+          description: User's role in the system
+          example: user
+        isActive:
+          type: boolean
+          description: Whether the user account is active
+          example: true
+    
+    PasswordUpdate:
+      type: object
+      required:
+        - newPassword
+      properties:
+        currentPassword:
+          type: string
+          format: password
+          description: User's current password (required for non-admin users)
+          example: OldPassword123!
+        newPassword:
+          type: string
+          format: password
+          description: User's new password
+          example: NewPassword123!
+    
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Error message
+    
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of records
+          example: 100
+        page:
+          type: integer
+          description: Current page number
+          example: 1
+        limit:
+          type: integer
+          description: Number of records per page
+          example: 10
+        totalPages:
+          type: integer
+          description: Total number of pages
+          example: 10
+        hasNextPage:
+          type: boolean
+          description: Whether there is a next page
+          example: true
+        hasPrevPage:
+          type: boolean
+          description: Whether there is a previous page
+          example: false
+
+paths:
+  /api/v1/users:
+    post:
+      tags:
+        - Users
+      summary: Create a new user
+      description: Create a new user in the system
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    get:
+      tags:
+        - Users
+      summary: Get all users
+      description: Get all users with pagination and filtering
+      operationId: getUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of records per page
+          schema:
+            type: integer
+            default: 10
+        - name: sortBy
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+            default: createdAt
+        - name: sortOrder
+          in: query
+          description: Sort order (asc or desc)
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: firstName
+          in: query
+          description: Filter by first name (partial match)
+          schema:
+            type: string
+        - name: lastName
+          in: query
+          description: Filter by last name (partial match)
+          schema:
+            type: string
+        - name: email
+          in: query
+          description: Filter by email (partial match)
+          schema:
+            type: string
+        - name: role
+          in: query
+          description: Filter by role
+          schema:
+            type: string
+            enum: [user, admin, manager]
+        - name: isActive
+          in: query
+          description: Filter by active status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: User ID
+        schema:
+          type: string
+    
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      description: Get a user by their ID
+      operationId: getUserById
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    put:
+      tags:
+        - Users
+      summary: Update user
+      description: Update a user's information
+      operationId: updateUser
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags:
+        - Users
+      summary: Delete user
+      description: Delete a user from the system
+      operationId: deleteUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: User successfully deleted
+                  data:
+                    type: object
+                    example: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/users/{id}/password:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: User ID
+        schema:
+          type: string
+    
+    put:
+      tags:
+        - Users
+      summary: Update user password
+      description: Update a user's password
+      operationId: updatePassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordUpdate'
+      responses:
+        '200':
+          description: Password updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Password updated successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /api/v1/users/{id}/last-login:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: User ID
+        schema:
+          type: string
+    
+    put:
+      tags:
+        - Users
+      summary: Update user's last login
+      description: Update a user's last login timestamp
+      operationId: updateLastLogin
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Last login updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Last login updated
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
