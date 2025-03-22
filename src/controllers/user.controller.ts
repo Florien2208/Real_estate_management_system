@@ -9,9 +9,6 @@ import {
 } from "@/utils/password.utils";
 import User, { IUserDocument } from "@/models/user.model";
 
-// @desc    Create a new user
-// @route   POST /api/users
-// @access  Admin
 export const createUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { firstName, lastName, email,phone, password, role } = req.body;
@@ -43,9 +40,7 @@ export const createUser = asyncHandler(
   }
 );
 
-// @desc    Get all users with pagination and filtering
-// @route   GET /api/users
-// @access  Admin
+
 export const getUsers = asyncHandler(async (req: Request, res: Response) => {
   // Parse query parameters
   const page = parseInt(req.query.page as string) || 1;
@@ -107,9 +102,7 @@ export const getUsers = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// @desc    Get user by ID
-// @route   GET /api/users/:id
-// @access  Admin or Owner
+
 export const getUserById = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = await User.findById(req.params.id);
@@ -125,9 +118,7 @@ export const getUserById = asyncHandler(
   }
 );
 
-// @desc    Update user
-// @route   PUT /api/users/:id
-// @access  Admin or Owner
+
 export const updateUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { firstName, lastName, email, role, isActive } = req.body;
@@ -169,9 +160,7 @@ export const updateUser = asyncHandler(
   }
 );
 
-// @desc    Delete user
-// @route   DELETE /api/users/:id
-// @access  Admin
+
 export const deleteUser = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = await User.findById(req.params.id);
@@ -227,9 +216,7 @@ export const updatePassword = asyncHandler(
     });
   }
 );
-// @desc    Update user's last login
-// @route   PUT /api/users/:id/last-login
-// @access  Private
+
 export const updateLastLogin = asyncHandler(
   async (req: Request, res: Response) => {
     await User.findByIdAndUpdate(req.params.id, {

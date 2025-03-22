@@ -19,7 +19,7 @@ userRoutes.post("/", createUser);
 userRoutes.use(protect);
 
 // Admin routes
-userRoutes.route("/").get(authorize("user"), getUsers);
+userRoutes.route("/").get(authorize("admin", "user"), getUsers);
 
 // Admin or owner routes
 userRoutes

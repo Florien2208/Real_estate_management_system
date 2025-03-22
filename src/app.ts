@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { logger } from "./utils/logger.utils";
 import appRoutes from "./routes";
 import { setupSwagger } from "./config/swagger.config";
+import { errorHandler } from "./middleware/errorHandler.middleware";
 
 // Load environment variables
 dotenv.config();
@@ -47,14 +48,14 @@ app.use((_req: Request, res: Response) => {
     error: "Resource not found",
   });
 });
-
+app.use(errorHandler)
 // Error handler
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-  logger.error(`Unhandled error: ${err.message}`);
-  res.status(500).json({
-    success: false,
-    error: "Server error",
-  });
-});
+// app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+//   logger.error(`Unhandled error: ${err.message}`);
+//   res.status(500).json({
+//     success: false,
+//     error: "Server error",
+//   });
+// });
 
 export default app;

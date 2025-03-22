@@ -4,7 +4,7 @@ info:
   description: Complete API documentation for the application
   version: 1.0.0
   contact:
-    email: support@example.com
+    email: florien2208@gmail.com
 servers:
   - url: http://localhost:8080
     description: Development server
