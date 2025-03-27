@@ -9,7 +9,7 @@ tags:
     description: Contact form operations
 
 paths:
-  /api/contact:
+  /api/v1/contact-us:
     post:
       tags:
         - Contact
@@ -124,7 +124,7 @@ paths:
                     type: string
                     example: Error message details
   
-  /api/contact/{id}:
+  /api/v1/contact-us/{id}:
     get:
       tags:
         - Contact

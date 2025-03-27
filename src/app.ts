@@ -13,7 +13,24 @@ dotenv.config();
 const app: Application = express();
 
 // Middleware
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"], // Restrict all other sources
+        scriptSrc: ["'self'", "'unsafe-inline'", "cdnjs.cloudflare.com"], // Allow inline scripts & CDNs
+        styleSrc: ["'self'", "'unsafe-inline'", "cdnjs.cloudflare.com"], // Allow inline styles & CDNs
+        fontSrc: ["'self'", "fonts.googleapis.com", "fonts.gstatic.com"], // Allow external fonts
+        imgSrc: ["'self'", "data:"], // Allow images and data URIs
+        connectSrc: [
+          "'self'",
+          "https://real-estate-management-system-zmnv.onrender.com", // Allow API requests
+        ],
+      },
+    },
+  })
+);
+
 app.use(
   cors({
     origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:8080",
@@ -48,7 +65,7 @@ app.use((_req: Request, res: Response) => {
     error: "Resource not found",
   });
 });
-app.use(errorHandler)
+app.use(errorHandler);
 // Error handler
 // app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 //   logger.error(`Unhandled error: ${err.message}`);

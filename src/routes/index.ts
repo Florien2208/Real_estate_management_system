@@ -3,14 +3,17 @@ import userRoutes from "./user.routes";
 import authRouter from "./auth.routes";
 import contactRouter from "./contactus.routes";
 import propertyRouter from "./propety.routes";
-import { uploadMiddleware, uploadMultipleMiddleware } from "@/middleware/upload.middleware";
+import {
+  uploadMiddleware,
+  uploadMultipleMiddleware,
+} from "@/middleware/upload.middleware";
 
 const appRoutes = Router();
 
 appRoutes.use("/users", userRoutes);
 appRoutes.use("/auth", authRouter);
 appRoutes.use("/contact-us", contactRouter);
-appRoutes.use("/property",propertyRouter)
+appRoutes.use("/property", propertyRouter);
 appRoutes.post("/api/upload", uploadMiddleware, (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded" });
@@ -33,6 +36,5 @@ appRoutes.post("/api/upload-multiple", uploadMultipleMiddleware, (req, res) => {
   );
   return res.status(200).json({ imageUrls });
 });
-
 
 export default appRoutes;

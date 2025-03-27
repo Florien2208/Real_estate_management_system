@@ -6,9 +6,9 @@ info:
   contact:
     email: florien2208@gmail.com
 servers:
-  - url: http://localhost:8080
+  - url: https://real-estate-management-system-zmnv.onrender.com
     description: Development server
-  - url: https://api.example.com
+  - url: http://localhost:8080
     description: Production server
 
 # Global security scheme
